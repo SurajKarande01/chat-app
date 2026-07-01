@@ -19,28 +19,43 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+    
     @Autowired
     private UserService userService;
 
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Retrieves all registered users in the system.
+     * It maps the domain model to a secure map DTO so passwords are not leaked to the client.
+     */
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
+        // Fetch all users, map them to secure data objects, and return the list
         List<Map<String, Object>> usersDto = userRepository.findAll().stream()
                 .map(this::toUserDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(usersDto);
     }
 
+    /**
+     * Retrieves a list of users currently marked as online.
+     * This is useful for drawing active members indicators on the frontend.
+     */
     @GetMapping("/online")
     public ResponseEntity<List<Map<String, Object>>> getOnlineUsers() {
+        // Fetch only users with isOnline = true, secure their DTO mapping, and return them
         List<Map<String, Object>> usersDto = userService.getOnlineUsers().stream()
                 .map(this::toUserDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(usersDto);
     }
 
+    /**
+     * Helper method to map a User entity into a secure key-value map.
+     * This avoids serializing password hash details over the REST endpoint.
+     */
     private Map<String, Object> toUserDto(User user) {
         Map<String, Object> dto = new HashMap<>();
         dto.put("id", user.getId());
